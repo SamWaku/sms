@@ -1,0 +1,631 @@
+from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import render, redirect
+from django.urls import reverse 
+from .models import Student, AcademicYear, FieldOfStudy, TutorialGroup
+from .forms import StudentForm
+from django.core.exceptions import ValidationError
+from django.db.models import Count
+
+
+from django.shortcuts import render
+from django.core.mail import send_mail
+from .models import Student
+from .forms import StudentForm
+from django.core.exceptions import ValidationError
+
+
+
+def addstudent(request):
+	return render (request,'students/add.html')
+
+def index(request):
+    return render(request, 'students/index.html', {
+        'students': Student.objects.all()
+    })
+
+def view_student(request, id):
+    student = Student.objects.get(pk=id)
+    return HttpResponseRedirect(reverse('index'))
+
+
+def add(request):
+    if request.method == 'POST':
+        form = StudentForm(request.POST)
+        if form.is_valid():
+            try:
+                new_student_number = form.cleaned_data['student_number']
+                new_first_name = form.cleaned_data['first_name']
+                new_last_name = form.cleaned_data['last_name']
+                new_email = form.cleaned_data['email']
+                new_school = form.cleaned_data['school']
+                new_field_of_study = form.cleaned_data['field_of_study']
+                new_year = form.cleaned_data['year']
+
+                # Create the student object
+                new_student = Student(
+                    student_number=new_student_number,
+                    first_name=new_first_name,
+                    last_name=new_last_name,
+                    email=new_email,
+                    school=new_school,
+                    field_of_study=new_field_of_study,
+                    year=new_year
+                )
+                new_student.save()
+
+                # Allocate the student to a tutorial group
+                allocate_to_group(new_student)
+
+                # Send confirmation email
+                send_mail(
+                    'Welcome to Our School',
+                    f'Dear {new_first_name},\n\nThank you for registering with us. We are excited to have you join our group.',
+                    'chitailapious1@gmail.com',  # From email
+                    [new_email],  # To email
+                    fail_silently=False,
+                )
+
+                return render(request, 'students/add.html', {
+                    'form': StudentForm(),
+                    'success': True
+                })
+            except ValidationError as e:
+                form.add_error('student_number', e)
+        else:
+            return render(request, 'students/add.html', {
+                'form': form,
+                'success': False
+            })
+    else:
+        form = StudentForm()
+        return render(request, 'students/add.html', {
+            'form': form,
+            'success': False
+        })
+
+
+
+def allocate_to_group(student):
+    max_group_size = 4
+    field_of_study = student.field_of_study
+
+    # Find or create the appropriate tutorial group
+    group = (TutorialGroup.objects
+             .filter(field_of_study__name=field_of_study)
+             .annotate(num_students=Count('students'))
+             .filter(num_students__lt=max_group_size)
+             .first())
+
+    if not group:
+        group_name = f'{field_of_study} Group {TutorialGroup.objects.filter(field_of_study__name=field_of_study).count() + 1}'
+        field_of_study_obj, created = FieldOfStudy.objects.get_or_create(name=field_of_study)
+        academic_year_obj, created = AcademicYear.objects.get_or_create(name=student.year)
+        group = TutorialGroup.objects.create(
+            name=group_name,
+            field_of_study=field_of_study_obj,
+            academic_year=academic_year_obj
+        )
+
+    group.students.add(student)
+    group.save()
+
+
+def groups(request):
+    # Fetch distinct years and fields of study
+    distinct_years = Student.objects.values_list('year', flat=True).distinct()
+    distinct_fields = Student.objects.values_list('field_of_study', flat=True).distinct()
+
+    # Group students by year and field of study
+    grouped_students = {}
+    for student in Student.objects.all():
+        year = student.year
+        field_of_study = student.field_of_study
+        if year not in grouped_students:
+            grouped_students[year] = {}
+        if field_of_study not in grouped_students[year]:
+            grouped_students[year][field_of_study] = []
+        grouped_students[year][field_of_study].append(student)
+
+    return render(request, 'students/groups.html', {
+        'grouped_students': grouped_students,
+        'distinct_years': distinct_years,
+        'distinct_fields': distinct_fields
+    })
+
+def get_fields(request):
+    year = request.GET.get('year')
+    fields = Student.objects.filter(year=year).values_list('field_of_study', flat=True).distinct()
+    return JsonResponse(list(fields), safe=False)
+
+
+def get_students(request):
+    year = request.GET.get('year')
+    field = request.GET.get('field')
+    students = Student.objects.filter(year=year, field_of_study=field).values(
+        'student_number', 'first_name', 'last_name', 'email', 'school', 'field_of_study', 'year'
+    )
+    return JsonResponse(list(students), safe=False)
+
+
+def groupslist(request):
+    # Fetch distinct years and fields of study
+    distinct_years = Student.objects.values_list('year', flat=True).distinct()
+    distinct_fields = Student.objects.values_list('field_of_study', flat=True).distinct()
+
+    # Initialize an empty dictionary to store grouped students
+    grouped_students = {}
+
+    # Loop over distinct years and fields of study
+    for year in distinct_years:
+        for field in distinct_fields:
+            # Filter students based on the current year and field of study
+            students = Student.objects.filter(year=year, field_of_study=field)
+            # Add the filtered students to the grouped_students dictionary
+            grouped_students[(year, field)] = students
+
+    return render(request, 'students/groups.html', {
+        'grouped_students': grouped_students,
+        'distinct_years': distinct_years,
+        'distinct_fields': distinct_fields
+    })
+
+
+def studentgroups(request):
+    groups = TutorialGroup.objects.prefetch_related('students').all()
+    return render(request, 'students/student-groups.html', {'studentgroups': groups})
+
+def get_fields_student(request):
+    year = request.GET.get('year')
+    fields = Student.objects.filter(year__name=year).values_list('field_of_study__name', flat=True).distinct()
+    return JsonResponse(list(fields), safe=False)
+
+
+def groups_student(request):
+    distinct_groups = TutorialGroup.objects.values_list('name', flat=True).distinct()
+    return render(request, 'students/student-groups.html', {
+        'distinct_groups': distinct_groups,
+    })
+
+def get_students_group(request):
+    group_name = request.GET.get('group')
+    students = Student.objects.filter(tutorial_groups__name=group_name).values(
+        'student_number', 'first_name', 'last_name', 'email', 'field_of_study', 'school', 'year'
+    )
+    return JsonResponse(list(students), safe=False)
+
+# def get_fields(request):
+#     year = request.GET.get('year')
+#     fields = Student.objects.filter(year=year).values_list('field_of_study', flat=True).distinct()
+#     return JsonResponse(list(fields), safe=False)
+
+# def allocate_to_group(student):
+#     max_group_size = 4
+#     field_of_study = student.field_of_study
+
+#     # Find or create the appropriate tutorial group
+#     group = (TutorialGroup.objects
+#              .filter(field_of_study=field_of_study)
+#              .annotate(num_students=Count('students'))
+#              .filter(num_students__lt=max_group_size)
+#              .first())
+
+#     if not group:
+#         group_name = f'{field_of_study.name} Group {TutorialGroup.objects.filter(field_of_study=field_of_study).count() + 1}'
+#         group = TutorialGroup.objects.create(
+#             name=group_name,
+#             field_of_study=field_of_study
+#         )
+
+#     group.students.add(student)
+#     group.save()
+
+# View to render the main student groups page
+# def groups_student(request):
+#     distinct_groups = TutorialGroup.objects.values_list('name', flat=True).distinct()
+#     return render(request, 'students/student-groups.html', {
+#         'distinct_groups': distinct_groups,
+#     })
+
+# API endpoint to get students in a specific group
+# def get_students_group(request):
+#     group_name = request.GET.get('group')
+#     students = Student.objects.filter(tutorial_groups__name=group_name).values(
+#         'student_number', 'first_name', 'last_name', 'email', 'field_of_study', 'gpa', 'year'
+#     )
+#     return JsonResponse(list(students), safe=False)
+
+# def get_students_group(request):
+#     group_name = request.GET.get('group')
+#     students = Student.objects.filter(tutorial_groups__name=group_name).values(
+#         'student_number', 'first_name', 'last_name', 'email', 'field_of_study__name', 'gpa', 'year__name'
+#     )
+#     return JsonResponse(list(students), safe=False)
+
+# Create your views here.
+# def studentgroups(request):
+#     return render (request, 'students/groups.html')
+
+
+# def allocate_to_group(student):
+#     max_group_size = 4
+#     field_of_study = student.field_of_study
+
+#     # Find or create the appropriate tutorial group
+#     group = (TutorialGroup.objects
+#              .filter(field_of_study=field_of_study)
+#              .annotate(num_students=Count('students'))
+#              .filter(num_students__lt=max_group_size)
+#              .first())
+
+#     if not group:
+#         group_name = f'{field_of_study.name} Group {TutorialGroup.objects.filter(field_of_study=field_of_study).count() + 1}'
+#         group = TutorialGroup.objects.create(
+#             name=group_name,
+#             field_of_study=field_of_study,
+#             academic_year=None  # Remove academic year if it's no longer relevant
+#         )
+
+#     group.students.add(student)
+#     group.save()
+
+
+# def allocate_to_group(student):
+#     max_group_size = 4
+#     field_of_study = student.field_of_study
+#     academic_year = student.year
+
+#     # Find or create the appropriate tutorial group
+#     group = (TutorialGroup.objects
+#              .filter(field_of_study=field_of_study, academic_year=academic_year)
+#              .annotate(num_students=Count('students'))
+#              .filter(num_students__lt=max_group_size)
+#              .first())
+
+#     if not group:
+#         group = TutorialGroup.objects.create(
+#             field_of_study=field_of_study,
+#             academic_year=academic_year
+#         )
+
+#     group.students.add(student)
+#     group.save()
+
+
+# def allocate_to_group(student):
+#     max_group_size = 4
+#     field_of_study = student.field_of_study
+#     academic_year = student.year
+
+#     # Find or create the appropriate tutorial group
+#     group = (TutorialGroup.objects
+#              .filter(field_of_study=field_of_study, academic_year=academic_year)
+#              .annotate(num_students=Count('students'))
+#              .filter(num_students__lt=max_group_size)
+#              .first())
+
+#     if not group:
+#         group_name = f'{field_of_study.name} {academic_year.name} Group {TutorialGroup.objects.count() + 1}'
+#         group = TutorialGroup.objects.create(
+#             name=group_name,
+#             field_of_study=field_of_study,
+#             academic_year=academic_year
+#         )
+
+#     group.students.add(student)
+#     group.save()
+
+
+# def get_students_group(request):
+#     group_name = request.GET.get('group')
+#     students = Student.objects.filter(tutorial_groups__name=group_name).values(
+#         'student_number', 'first_name', 'last_name', 'email', 'field_of_study__name', 'gpa', 'year__name'
+#     )
+#     return JsonResponse(list(students), safe=False)
+
+# def get_students_group(request):
+#     group_name = request.GET.get('group')
+
+#     if group_name:
+#         # Assuming 'group' parameter is the name of the TutorialGroup
+#         group = TutorialGroup.objects.get(name=group_name)
+
+#         # Get all students in the tutorial group
+#         students = group.students.all()
+
+#         context = {
+#             'students': students,
+#         }
+
+#         return render(request, 'students/student-groups.html', context)
+#     else:
+#         # Handle the case where 'group' parameter is not provided
+#         # Redirect or return an appropriate response
+#         pass
+
+
+# def get_students_group(request):
+#     group_name = request.GET.get('group')
+#     students = Student.objects.filter(tutorial_groups__name=group_name).values(
+#         'student_number', 'first_name', 'last_name', 'email', 'field_of_study__name', 'gpa', 'year__name'
+#     )
+#     return JsonResponse(list(students), safe=False)
+
+# def groups_student(request):
+#     distinct_groups = TutorialGroup.objects.values_list('name', flat=True).distinct()
+#     return render(request, 'students/student-groups.html', {
+#         'distinct_groups': distinct_groups,
+#     })
+
+# def get_students(request):
+#     year = request.GET.get('year')
+#     field = request.GET.get('field')
+#     students = Student.objects.filter(year=year, field_of_study=field).values(
+#         'student_number', 'first_name', 'last_name', 'email', 'field_of_study', 'gpa', 'year'
+#     )
+#     return JsonResponse(list(students), safe=False)
+
+
+# def get_students(request):
+#     year = request.GET.get('year')
+#     field = request.GET.get('field')
+#     students = Student.objects.filter(year=year, field_of_study=field).values('first_name', 'last_name')
+#     return JsonResponse(list(students), safe=False)
+
+# def add(request):
+#     if request.method == 'POST':
+#         form = StudentForm(request.POST)
+#         if form.is_valid():
+#             new_student_number = form.cleaned_data['student_number']
+#             new_first_name = form.cleaned_data['first_name']
+#             new_last_name = form.cleaned_data['last_name']
+#             new_email = form.cleaned_data['email']
+#             new_field_of_study = form.cleaned_data['field_of_study']
+#             new_gpa = form.cleaned_data['gpa']
+#             new_year = form.cleaned_data['year']
+
+#             # Get or create the field of study
+#             field_of_study, created = FieldOfStudy.objects.get_or_create(name=new_field_of_study)
+
+#             # Get or create the academic year
+#             academic_year, created = AcademicYear.objects.get_or_create(name=new_year)
+
+#             # Create the student object
+#             new_student = Student(
+#                 student_number=new_student_number,
+#                 first_name=new_first_name,
+#                 last_name=new_last_name,
+#                 email=new_email,
+#                 field_of_study=field_of_study.name,  # Assuming you want to store the name
+#                 gpa=new_gpa,
+#                 year=academic_year.name  # Assuming you want to store the name
+#             )
+#             new_student.save()
+
+#             # Allocate the student to a tutorial group
+#             allocate_to_group(new_student)
+
+#             return render(request, 'students/add.html', {
+#                 'form': StudentForm(),
+#                 'success': True
+#             })
+#     else:
+#         form = StudentForm()
+#     return render(request, 'students/add.html', {
+#         'form': form
+#     })
+
+# def add(request):
+#     if request.method == 'POST':
+#         form = StudentForm(request.POST)
+#         if form.is_valid():
+#             new_student_number = form.cleaned_data['student_number']
+#             new_first_name = form.cleaned_data['first_name']
+#             new_last_name = form.cleaned_data['last_name']
+#             new_email = form.cleaned_data['email']
+#             new_field_of_study = form.cleaned_data['field_of_study']
+#             new_gpa = form.cleaned_data['gpa']
+#             new_year = form.cleaned_data['year']
+
+#             # Get or create the field of study
+#             field_of_study, created = FieldOfStudy.objects.get_or_create(name=new_field_of_study)
+
+#             # Get or create the academic year
+#             academic_year, created = AcademicYear.objects.get_or_create(name=new_year)
+
+#             # Create the student object
+#             new_student = Student(
+#                 student_number=new_student_number,
+#                 first_name=new_first_name,
+#                 last_name=new_last_name,
+#                 email=new_email,
+#                 field_of_study=field_of_study,
+#                 gpa=new_gpa,
+#                 year=academic_year
+#             )
+#             new_student.save()
+
+#             # Allocate the student to a tutorial group
+#             allocate_to_group(new_student)
+
+#             return render(request, 'students/add.html', {
+#                 'form': StudentForm(),
+#                 'success': True
+#             })
+#     else:
+#         form = StudentForm()
+#     return render(request, 'students/add.html', {
+#         'form': form
+#     })
+
+# def add(request):
+#     if request.method == 'POST':
+#         form = StudentForm(request.POST)
+#         if form.is_valid():
+#             new_student_number = form.cleaned_data['student_number']
+#             new_first_name = form.cleaned_data['first_name']
+#             new_last_name = form.cleaned_data['last_name']
+#             new_email = form.cleaned_data['email']
+#             new_field_of_study = form.cleaned_data['field_of_study']
+#             new_gpa = form.cleaned_data['gpa']
+#             new_year = form.cleaned_data['year']
+
+#             # Get or create the field of study
+#             field_of_study, created = FieldOfStudy.objects.get_or_create(name=new_field_of_study)
+
+#             new_student = Student(
+#                 student_number=new_student_number,
+#                 first_name=new_first_name,
+#                 last_name=new_last_name,
+#                 email=new_email,
+#                 field_of_study=field_of_study,
+#                 gpa=new_gpa,
+#                 year=new_year  # Remove year if you don't need it
+#             )
+#             new_student.save()
+
+#             # Allocate the student to a tutorial group
+#             allocate_to_group(new_student)
+
+#             return render(request, 'students/add.html', {
+#                 'form': StudentForm(),
+#                 'success': True
+#             })
+#     else:
+#         form = StudentForm()
+#     return render(request, 'students/add.html', {
+#         'form': form
+#     })
+
+# def add(request):
+#     if request.method == 'POST':
+#         form = StudentForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('add')  # Replace 'index' with the name of your view
+#     else:
+#         form = StudentForm()
+#     return render(request, 'students/add.html', {'form': form})
+
+# def add(request):
+#     if request.method == 'POST':
+#         form = StudentForm(request.POST)
+#         if form.is_valid():
+#             new_student_number = form.cleaned_data['student_number']
+#             new_first_name = form.cleaned_data['first_name']
+#             new_last_name = form.cleaned_data['last_name']
+#             new_email = form.cleaned_data['email']
+#             new_field_of_study = form.cleaned_data['field_of_study']
+#             new_gpa = form.cleaned_data['gpa']
+#             new_year = form.cleaned_data['year']
+
+#             # Get or create the academic year
+#             academic_year, created = AcademicYear.objects.get_or_create(name=new_year)
+
+#             # Get or create the field of study
+#             field_of_study, created = FieldOfStudy.objects.get_or_create(name=new_field_of_study)
+
+#             new_student = Student(
+#                 student_number=new_student_number,
+#                 first_name=new_first_name,
+#                 last_name=new_last_name,
+#                 email=new_email,
+#                 field_of_study=field_of_study,
+#                 gpa=new_gpa,
+#                 year=academic_year,
+#             )
+#             new_student.save()
+
+#             # Allocate the student to a tutorial group
+#             allocate_to_group(new_student)
+
+#             return render(request, 'students/add.html', {
+#                 'form': StudentForm(),
+#                 'success': True
+#             })
+#     else:
+#         form = StudentForm()
+#     return render(request, 'students/add.html', {
+#         'form': form
+#     })
+
+
+# def add(request):
+#     if request.method == 'POST':
+#         form = StudentForm(request.POST)
+#         if form.is_valid():
+#             new_student_number = form.cleaned_data['student_number']
+#             new_first_name = form.cleaned_data['first_name']
+#             new_last_name = form.cleaned_data['last_name']
+#             new_email = form.cleaned_data['email']
+#             new_field_of_study = form.cleaned_data['field_of_study']
+#             new_gpa = form.cleaned_data['gpa']
+#             new_year = form.cleaned_data['year']
+
+#             # Get or create the academic year
+#             academic_year, created = AcademicYear.objects.get_or_create(name=new_year)
+
+#             # Get or create the field of study
+#             field_of_study, created = FieldOfStudy.objects.get_or_create(name=new_field_of_study)
+
+#             new_student = Student(
+#                 student_number=new_student_number,
+#                 first_name=new_first_name,
+#                 last_name=new_last_name,
+#                 email=new_email,
+#                 field_of_study=field_of_study.name,
+#                 gpa=new_gpa,
+#                 year=academic_year.name,
+#             )
+#             new_student.save()
+#             return render(request, 'students/add.html', {
+#                 'form': StudentForm(),
+#                 'success': True
+#             })
+#     else:
+#         form = StudentForm()
+#     return render(request, 'students/add.html', {
+#         'form': form
+#     })
+
+# def add(request):
+#     if request.method == 'POST':
+#         form = StudentForm(request.POST)
+#         if form.is_valid():
+#             new_student_number = form.cleaned_data['student_number']
+#             new_first_name = form.cleaned_data['first_name']
+#             new_last_name = form.cleaned_data['last_name']
+#             new_email = form.cleaned_data['email']
+#             new_field_of_study = form.cleaned_data['field_of_study']
+#             new_gpa = form.cleaned_data['gpa']
+#             new_year = form.cleaned_data['year']
+
+#             # Get or create the field of study
+#             field_of_study, created = FieldOfStudy.objects.get_or_create(name=new_field_of_study)
+
+#             # Get or create the academic year
+#             academic_year, created = AcademicYear.objects.get_or_create(name=new_year)
+
+#             # Create the student object
+#             new_student = Student(
+#                 student_number=new_student_number,
+#                 first_name=new_first_name,
+#                 last_name=new_last_name,
+#                 email=new_email,
+#                 field_of_study=field_of_study.name,  # Assuming you want to store the name
+#                 gpa=new_gpa,
+#                 year=academic_year.name  # Assuming you want to store the name
+#             )
+#             new_student.save()
+
+#             # Allocate the student to a tutorial group
+#             allocate_to_group(new_student)
+
+#             return render(request, 'students/add.html', {
+#                 'form': StudentForm(),
+#                 'success': True
+#             })
+#     else:
+#         form = StudentForm()
+#     return render(request, 'students/add.html', {
+#         'form': form
+#     })

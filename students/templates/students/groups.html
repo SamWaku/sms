@@ -1,0 +1,63 @@
+{% extends "students/base.html" %} {% load static %} {% block body %}
+<div class="dropdown">
+  <button
+    class="btn btn-primary dropdown-toggle"
+    type="button"
+    id="dropdownMenuButton"
+    data-bs-toggle="dropdown"
+    aria-expanded="false"
+  >
+    Select Year
+  </button>
+  <ul
+    class="dropdown-menu"
+    aria-labelledby="dropdownMenuButton"
+    id="year-dropdown"
+  >
+    {% for year in distinct_years %}
+    <li class="dropdown-item">{{ year }}</li>
+    {% endfor %}
+  </ul>
+</div>
+
+<div class="dropdown" id="field-dropdown">
+  <button
+    class="btn btn-primary dropdown-toggle"
+    type="button"
+    id="dropdownMenuButton2"
+    data-bs-toggle="dropdown"
+    aria-expanded="false"
+    disabled
+  >
+    Select Field of Study
+  </button>
+  <ul
+    class="dropdown-menu"
+    aria-labelledby="dropdownMenuButton2"
+    id="field-list"
+  >
+    <!-- Fields will be loaded dynamically -->
+  </ul>
+</div>
+
+<div id="students-list">
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Student Number</th>
+        <th scope="col">First Name</th>
+        <th scope="col">Last Name</th>
+        <th scope="col">Email</th>
+        <th scope="col">School</th>
+        <th scope="col">Field of Study</th>
+        <th scope="col">Year</th>
+      </tr>
+    </thead>
+    <tbody id="students-table-body">
+      <!-- Student data will be loaded here -->
+    </tbody>
+  </table>
+</div>
+
+<script src="{% static 'js/student_groups.js' %}"></script>
+{% endblock %}
