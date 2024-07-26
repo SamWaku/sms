@@ -18,6 +18,9 @@ from django.core.exceptions import ValidationError
 def addstudent(request):
 	return render (request,'students/add.html')
 
+def courses(request):
+    return render(request, 'students/courses.html' )
+
 def index(request):
     return render(request, 'students/index.html', {
         'students': Student.objects.all()

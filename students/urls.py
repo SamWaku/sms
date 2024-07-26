@@ -14,6 +14,7 @@ urlpatterns = [
     path('get-fields/', get_fields, name='get_fields'),
     path('get-students/', get_students, name='get_students'),
     path('student-groups/', views.studentgroups, name='studentgroups'),
+    path('student-courses/', views.courses, name='studentcourses'),
 
     path('groups-tutorial/', views.groups_student, name='groups_student'),
     path('get_fields_student/', views.get_fields_student, name='get_fields'),
