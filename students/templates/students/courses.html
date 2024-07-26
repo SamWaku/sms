@@ -9,6 +9,9 @@
       <th scope="col">Actions</th>
     </tr>
   </table>
+  <tbody id="students-table-body">
+    <!-- Student data will be loaded here -->
+  </tbody>
 </div>
 <script src="{% static 'js/student_courses.js' %}"></script>
 <script>
@@ -38,12 +41,7 @@
                     <td>${student.student_number}</td>
                     <td>${student.first_name}</td>
                     <td>${student.last_name}</td>
-                    <td>${student.email}</td>
-                    <td>${student.school}</td>
-                    <td>${student.current_course || ""}</td>
-                    <td>${student.repeated_course || ""}</td>
-                    <td>${student.field_of_study}</td>
-                    <td>${student.year}</td>
+                    <td></td>
                   </tr>`;
             });
           }
