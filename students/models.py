@@ -130,21 +130,37 @@ class CurrentCourse(models.Model):
     course_code = models.CharField(max_length=50)
     course_name = models.CharField(max_length=50)
     course_short = models.CharField(max_length=50)
-    field_of_study = models.ForeignKey(FieldOfStudy, on_delete=models.CASCADE)  # Link to FieldOfStudy
-    students = models.ManyToManyField(Student, related_name='current_courses')  # Link to Students
+    field_of_study = models.ForeignKey(FieldOfStudy, on_delete=models.CASCADE)
+    students = models.ManyToManyField(Student, through='CurrentCourseStatus', related_name='current_courses')
 
     def __str__(self):
         return self.course_name
-    
+
 class RepeatedCourse(models.Model):
     course_code = models.CharField(max_length=50)
     course_name = models.CharField(max_length=50)
     course_short = models.CharField(max_length=50)
-    field_of_study = models.ForeignKey(FieldOfStudy, on_delete=models.CASCADE)  # Link to FieldOfStudy
-    students = models.ManyToManyField(Student, related_name='repeated_courses')  # Link to Students
+    field_of_study = models.ForeignKey(FieldOfStudy, on_delete=models.CASCADE)
+    students = models.ManyToManyField(Student, through='RepeatedCourseStatus', related_name='repeated_courses')
 
     def __str__(self):
         return self.course_name
+
+class CurrentCourseStatus(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    course = models.ForeignKey(CurrentCourse, on_delete=models.CASCADE)
+    is_carried = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.student} - {self.course} - {"Carried" if self.is_carried else "Not Carried"}'
+
+class RepeatedCourseStatus(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    course = models.ForeignKey(RepeatedCourse, on_delete=models.CASCADE)
+    is_carried = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.student} - {self.course} - {"Carried" if self.is_carried else "Not Carried"}'
 
 # from django.db import models
 
