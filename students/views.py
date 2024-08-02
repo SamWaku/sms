@@ -14,7 +14,7 @@ from .forms import StudentForm
 from django.core.exceptions import ValidationError
 
 from django.forms import modelformset_factory
-from django.shortcuts import get_list_or_404
+from django.shortcuts import get_object_or_404
 
 
 
