@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import groups, get_fields, get_students, add_student_courses
+from .views import groups, get_fields, get_students, add_student_courses, view_student
 
 
 
