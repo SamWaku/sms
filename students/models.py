@@ -160,9 +160,7 @@ class RepeatedCourseStatus(models.Model):
     is_carried = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.student} - {self.course} - {"Carried" if self.is_carried else "Not Carried"}'
-
-# from django.db import models
+        return f'{self.student} - {self.course} - {"Carried" if self.is_carried else "Not Carried"}'# from django.db import models
 
 # class AcademicYear(models.Model):
 #     name = models.CharField(max_length=50)
