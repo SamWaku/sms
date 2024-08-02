@@ -1,1 +1,14 @@
 {% extends "students/base.html" %} {% load static %} {% block body %}
+<form method="post">
+  {% csrf_token %}
+  <h3>Current Courses</h3>
+  {{ current_course_formset.management_form }} {% for form in
+  current_course_formset %} {{ form.as_p }} {% endfor %}
+
+  <h3>Repeated Courses</h3>
+  {{ repeated_course_formset.management_form }} {% for form in
+  repeated_course_formset %} {{ form.as_p }} {% endfor %}
+
+  <button type="submit">Save</button>
+</form>
+{%endblock %}
