@@ -17,6 +17,16 @@ class StudentForm(forms.ModelForm):
         if Student.objects.filter(student_number=student_number).exists():
             raise forms.ValidationError("A student with this student number already exists.")
         return student_number
+    
+class CurrentCourseStatusForm(forms.ModelForm):
+    class Meta:
+        model = CurrentCourseStatus
+        fields = ['course', 'is_carried']
+
+class RepeatedCourseStatusForm(forms.ModelForm):
+    class Meta:
+        model = RepeatedCourseStatus
+        fields = ['course', 'is_carried']
 
 # real
 # class StudentForm(forms.ModelForm):
