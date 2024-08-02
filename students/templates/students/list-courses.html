@@ -1,2 +1,24 @@
-{% extends "students/base.html" %} {% load static %} {% block body %} {%endblock
-%}
+{% extends "students/base.html" %} {% load static %} {% block body %} {% block
+body %}
+<h2>{{ student.first_name }} {{ student.last_name }}</h2>
+
+<h3>Current Courses</h3>
+<ul>
+  {% for current_course in current_courses %}
+  <li>
+    {{ current_course.course.course_name }} - {{ "Carried" if
+    current_course.is_carried else "Not Carried" }}
+  </li>
+  {% endfor %}
+</ul>
+
+<h3>Repeated Courses</h3>
+<ul>
+  {% for repeated_course in repeated_courses %}
+  <li>
+    {{ repeated_course.course.course_name }} - {{ "Carried" if
+    repeated_course.is_carried else "Not Carried" }}
+  </li>
+  {% endfor %}
+</ul>
+{%endblock %}
