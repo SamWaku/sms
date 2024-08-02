@@ -1,5 +1,5 @@
 from django import forms
-from .models import Student, AcademicYear, FieldOfStudy
+from .models import Student, AcademicYear, FieldOfStudy, CurrentCourseStatus, RepeatedCourseStatus
 
 
 class StudentForm(forms.ModelForm):
