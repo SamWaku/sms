@@ -63,13 +63,13 @@ def add(request):
                 allocate_to_group(new_student)
 
                 # Send confirmation email
-                send_mail(
-                    'Welcome to Our School',
-                    f'Dear {new_first_name},\n\nThank you for registering with us. We are excited to have you join our group.',
-                    'chitailapious1@gmail.com',  # From email
-                    [new_email],  # To email
-                    fail_silently=False,
-                )
+                # send_mail(
+                #     'Welcome to Our School',
+                #     f'Dear {new_first_name},\n\nThank you for registering with us. We are excited to have you join our group.',
+                #     'chitailapious1@gmail.com',  # From email
+                #     [new_email],  # To email
+                #     fail_silently=False,
+                # )
 
                 return render(request, 'students/add.html', {
                     'form': StudentForm(),
