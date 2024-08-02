@@ -230,6 +230,17 @@ def add_student_courses(request, student_id):
         'student': student,
     })
 
+def view_student(request, id):
+    student = get_object_or_404(Student, pk=id)
+    current_courses = CurrentCourseStatus.objects.filter(student=student)
+    repeated_courses = RepeatedCourseStatus.objects.filter(student=student)
+    return render(request, 'students/view_student.html', {
+        'student': student,
+        'current_courses': current_courses,
+        'repeated_courses': repeated_courses,
+    })
+
+
 # def get_fields(request):
 #     year = request.GET.get('year')
 #     fields = Student.objects.filter(year=year).values_list('field_of_study', flat=True).distinct()
