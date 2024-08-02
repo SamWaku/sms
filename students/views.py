@@ -224,7 +224,7 @@ def add_student_courses(request, student_id):
         current_course_formset = CurrentCourseStatusFormSet(queryset=CurrentCourseStatus.objects.filter(student=student))
         repeated_course_formset = RepeatedCourseStatusFormSet(queryset=RepeatedCourseStatus.objects.filter(student=student))
 
-    return render(request, 'students/add_student_courses.html', {
+    return render(request, 'students/add-course.html', {
         'current_course_formset': current_course_formset,
         'repeated_course_formset': repeated_course_formset,
         'student': student,
@@ -234,7 +234,7 @@ def view_student(request, id):
     student = get_object_or_404(Student, pk=id)
     current_courses = CurrentCourseStatus.objects.filter(student=student)
     repeated_courses = RepeatedCourseStatus.objects.filter(student=student)
-    return render(request, 'students/view_student.html', {
+    return render(request, 'students/list-courses.html', {
         'student': student,
         'current_courses': current_courses,
         'repeated_courses': repeated_courses,
