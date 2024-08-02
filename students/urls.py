@@ -21,7 +21,7 @@ urlpatterns = [
     path('get_students/', views.get_students, name='get_students'),
     path('get-students-group/', views.get_students_group, name='get_students_group'),
 
-    path('add-course/', views.add_student_courses, name='add_student_courses'),
+    path('add-course/<int:student_id>/', views.add_student_courses, name='add_student_courses'),
     path('list-courses/', views.add_student_courses, name='add_student_courses')
 
 ]
