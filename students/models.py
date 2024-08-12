@@ -147,31 +147,20 @@ class RepeatedCourse(models.Model):
         return self.course_name
 
 class CurrentCourseStatus(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='current_course_statuses')
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
     course = models.ForeignKey(CurrentCourse, on_delete=models.CASCADE)
     is_carried = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.student} - {self.course} - {"Carried" if self.is_carried else "Not Carried"}'
 
 class RepeatedCourseStatus(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='repeated_course_statuses')
-    course = models.ForeignKey(CurrentCourse, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    course = models.ForeignKey(RepeatedCourse, on_delete=models.CASCADE)
     is_carried = models.BooleanField(default=False)
 
-
-# class CurrentCourseStatus(models.Model):
-#     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-#     course = models.ForeignKey(CurrentCourse, on_delete=models.CASCADE)
-#     is_carried = models.BooleanField(default=False)
-
-#     def __str__(self):
-#         return f'{self.student} - {self.course} - {"Carried" if self.is_carried else "Not Carried"}'
-
-# class RepeatedCourseStatus(models.Model):
-#     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-#     course = models.ForeignKey(RepeatedCourse, on_delete=models.CASCADE)
-#     is_carried = models.BooleanField(default=False)
-
-#     def __str__(self):
-#         return f'{self.student} - {self.course} - {"Carried" if self.is_carried else "Not Carried"}'# from django.db import models
+    def __str__(self):
+        return f'{self.student} - {self.course} - {"Carried" if self.is_carried else "Not Carried"}'# from django.db import models
 
 # class AcademicYear(models.Model):
 #     name = models.CharField(max_length=50)
