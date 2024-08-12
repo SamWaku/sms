@@ -33,43 +33,23 @@ def view_student(request, id):
     student = Student.objects.get(pk=id)
     return HttpResponseRedirect(reverse('index'))
 
-
 def add(request):
     if request.method == 'POST':
         form = StudentForm(request.POST)
         if form.is_valid():
             try:
-                new_student_number = form.cleaned_data['student_number']
-                new_first_name = form.cleaned_data['first_name']
-                new_last_name = form.cleaned_data['last_name']
-                new_email = form.cleaned_data['email']
-                new_school = form.cleaned_data['school']
-                new_field_of_study = form.cleaned_data['field_of_study']
-                new_year = form.cleaned_data['year']
+                new_student = form.save()
 
-                # Create the student object
-                new_student = Student(
-                    student_number=new_student_number,
-                    first_name=new_first_name,
-                    last_name=new_last_name,
-                    email=new_email,
-                    school=new_school,
-                    field_of_study=new_field_of_study,
-                    year=new_year
-                )
-                new_student.save()
+                # Handle course assignments and carry status
+                for course in form.cleaned_data['current_courses']:
+                    CurrentCourseStatus.objects.create(
+                        student=new_student,
+                        course=course,
+                        is_carried=request.POST.get(f'carry_{course.id}', False) == 'on'
+                    )
 
                 # Allocate the student to a tutorial group
                 allocate_to_group(new_student)
-
-                # Send confirmation email
-                # send_mail(
-                #     'Welcome to Our School',
-                #     f'Dear {new_first_name},\n\nThank you for registering with us. We are excited to have you join our group.',
-                #     'chitailapious1@gmail.com',  # From email
-                #     [new_email],  # To email
-                #     fail_silently=False,
-                # )
 
                 return render(request, 'students/add.html', {
                     'form': StudentForm(),
@@ -88,6 +68,63 @@ def add(request):
             'form': form,
             'success': False
         })
+
+
+
+# def add(request):
+#     if request.method == 'POST':
+#         form = StudentForm(request.POST)
+#         if form.is_valid():
+#             try:
+#                 new_student_number = form.cleaned_data['student_number']
+#                 new_first_name = form.cleaned_data['first_name']
+#                 new_last_name = form.cleaned_data['last_name']
+#                 new_email = form.cleaned_data['email']
+#                 new_school = form.cleaned_data['school']
+#                 new_field_of_study = form.cleaned_data['field_of_study']
+#                 new_year = form.cleaned_data['year']
+
+#                 # Create the student object
+#                 new_student = Student(
+#                     student_number=new_student_number,
+#                     first_name=new_first_name,
+#                     last_name=new_last_name,
+#                     email=new_email,
+#                     school=new_school,
+#                     field_of_study=new_field_of_study,
+#                     year=new_year
+#                 )
+#                 new_student.save()
+
+#                 # Allocate the student to a tutorial group
+#                 allocate_to_group(new_student)
+
+#                 # Send confirmation email
+#                 # send_mail(
+#                 #     'Welcome to Our School',
+#                 #     f'Dear {new_first_name},\n\nThank you for registering with us. We are excited to have you join our group.',
+#                 #     'chitailapious1@gmail.com',  # From email
+#                 #     [new_email],  # To email
+#                 #     fail_silently=False,
+#                 # )
+
+#                 return render(request, 'students/add.html', {
+#                     'form': StudentForm(),
+#                     'success': True
+#                 })
+#             except ValidationError as e:
+#                 form.add_error('student_number', e)
+#         else:
+#             return render(request, 'students/add.html', {
+#                 'form': form,
+#                 'success': False
+#             })
+#     else:
+#         form = StudentForm()
+#         return render(request, 'students/add.html', {
+#             'form': form,
+#             'success': False
+#         })
 
 
 
