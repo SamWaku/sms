@@ -1,3 +1,57 @@
+document.addEventListener("DOMContentLoaded", function () {
+  function fetchStudents(group) {
+    console.log(`Fetching students for group: ${group}`);
+    // Update the heading with the selected group name
+    document.getElementById("group-name-heading").textContent = group;
+
+    fetch(`/get-students-group?group=${encodeURIComponent(group)}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Data received:", data); // Log the data received
+        const tbody = document.getElementById("students-table-body");
+        tbody.innerHTML = ""; // Clear existing content
+        if (data.length === 0) {
+          tbody.innerHTML = "<tr><td colspan='9'>No students found</td></tr>";
+        } else {
+          data.forEach((student) => {
+            const currentCourses = student.current_courses.join(", ");
+            const repeatedCourses = student.repeated_courses.join(", ");
+            tbody.innerHTML += `
+              <tr>
+                <td>${student.student_number}</td>
+                <td>${student.first_name}</td>
+                <td>${student.last_name}</td>
+                <td>${student.email}</td>
+                <td>${student.school}</td>
+                <td>${currentCourses}</td>
+                <td>${repeatedCourses}</td>
+                <td>${student.field_of_study}</td>
+                <td>${student.year}</td>
+              </tr>`;
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error); // Log any errors
+        const tbody = document.getElementById("students-table-body");
+        tbody.innerHTML =
+          "<tr><td colspan='9'>Error loading students</td></tr>";
+      });
+  }
+
+  // Attach event listeners to dropdown items
+  document.querySelectorAll(".dropdown-item").forEach((item) => {
+    item.addEventListener("click", function () {
+      fetchStudents(this.textContent.trim());
+    });
+  });
+});
+
 // function fetchStudents(group) {
 //   fetch(`/get-students-group?group=${encodeURIComponent(group)}`)
 //     .then((response) => response.json())
