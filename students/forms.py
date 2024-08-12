@@ -1,11 +1,18 @@
 from django import forms
-from .models import Student, AcademicYear, FieldOfStudy, CurrentCourseStatus, RepeatedCourseStatus
+from .models import Student, CurrentCourse, AcademicYear, FieldOfStudy, CurrentCourseStatus, RepeatedCourseStatus
 
 
 class StudentForm(forms.ModelForm):
+    current_courses = forms.ModelMultipleChoiceField(
+        queryset=CurrentCourse.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Current Courses"
+    )
+
     class Meta:
         model = Student
-        fields = ['student_number', 'first_name', 'last_name', 'email', 'field_of_study', 'year', 'school']
+        fields = ['student_number', 'first_name', 'last_name', 'email', 'field_of_study', 'year', 'school', 'current_courses']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -17,6 +24,7 @@ class StudentForm(forms.ModelForm):
         if Student.objects.filter(student_number=student_number).exists():
             raise forms.ValidationError("A student with this student number already exists.")
         return student_number
+
     
 class CurrentCourseStatusForm(forms.ModelForm):
     class Meta:
