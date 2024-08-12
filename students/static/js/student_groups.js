@@ -1,32 +1,32 @@
-document.addEventListener("DOMContentLoaded", () => {
-  document
-    .getElementById("group-dropdown")
-    .addEventListener("click", function (event) {
-      const group = event.target.textContent;
-      fetchStudents(group);
-    });
-});
+// document.addEventListener("DOMContentLoaded", () => {
+//   document
+//     .getElementById("group-dropdown")
+//     .addEventListener("click", function (event) {
+//       const group = event.target.textContent;
+//       fetchStudents(group);
+//     });
+// });
 
-function fetchStudents(group) {
-  fetch(`/get-students-group?group=${group}`)
-    .then((response) => response.json())
-    .then((data) => {
-      const tbody = document.getElementById("students-table-body");
-      tbody.innerHTML = "";
-      data.forEach((student) => {
-        tbody.innerHTML += `
-                      <tr>
-                          <td>${student.student_number}</td>
-                          <td>${student.first_name}</td>
-                          <td>${student.last_name}</td>
-                          <td>${student.email}</td>
-                          <td>${student.school}</td>
-                          <td>${student.field_of_study}</td>
-                          <td>${student.year}</td>
-                      </tr>`;
-      });
-    });
-}
+// function fetchStudents(group) {
+//   fetch(`/get-students-group?group=${group}`)
+//     .then((response) => response.json())
+//     .then((data) => {
+//       const tbody = document.getElementById("students-table-body");
+//       tbody.innerHTML = "";
+//       data.forEach((student) => {
+//         tbody.innerHTML += `
+//                       <tr>
+//                           <td>${student.student_number}</td>
+//                           <td>${student.first_name}</td>
+//                           <td>${student.last_name}</td>
+//                           <td>${student.email}</td>
+//                           <td>${student.school}</td>
+//                           <td>${student.field_of_study}</td>
+//                           <td>${student.year}</td>
+//                       </tr>`;
+//       });
+//     });
+// }
 
 // document.addEventListener("DOMContentLoaded", () => {
 //   document
