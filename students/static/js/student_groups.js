@@ -1,3 +1,37 @@
+function fetchStudents(group) {
+  fetch(`/get-students-group?group=${encodeURIComponent(group)}`)
+    .then((response) => response.json())
+    .then((data) => {
+      const tbody = document.getElementById("students-table-body");
+      tbody.innerHTML = "";
+      if (data.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='9'>No students found</td></tr>";
+      } else {
+        data.forEach((student) => {
+          const currentCourses = student.current_courses.join(", ");
+          const repeatedCourses = student.repeated_courses.join(", ");
+          tbody.innerHTML += `
+            <tr>
+              <td>${student.student_number}</td>
+              <td>${student.first_name}</td>
+              <td>${student.last_name}</td>
+              <td>${student.email}</td>
+              <td>${student.school}</td>
+              <td>${currentCourses}</td>
+              <td>${repeatedCourses}</td>
+              <td>${student.field_of_study}</td>
+              <td>${student.year}</td>
+            </tr>`;
+        });
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching data:", error);
+      const tbody = document.getElementById("students-table-body");
+      tbody.innerHTML = "<tr><td colspan='9'>Error loading students</td></tr>";
+    });
+}
+
 // document.addEventListener("DOMContentLoaded", () => {
 //   document
 //     .getElementById("group-dropdown")
