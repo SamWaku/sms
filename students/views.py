@@ -177,7 +177,6 @@ def get_students_group(request):
         'student_number', 'first_name', 'last_name', 'email', 'school', 'field_of_study', 'year'
     )
 
-    # Iterate over students to add current and repeated courses
     students_list = []
     for student in students:
         student_dict = {
@@ -194,6 +193,31 @@ def get_students_group(request):
         students_list.append(student_dict)
 
     return JsonResponse(students_list, safe=False)
+
+
+# def get_students_group(request):
+#     group_name = request.GET.get('group')
+#     students = Student.objects.filter(tutorial_groups__name=group_name).values(
+#         'student_number', 'first_name', 'last_name', 'email', 'school', 'field_of_study', 'year'
+#     )
+
+#     # Iterate over students to add current and repeated courses
+#     students_list = []
+#     for student in students:
+#         student_dict = {
+#             'student_number': student['student_number'],
+#             'first_name': student['first_name'],
+#             'last_name': student['last_name'],
+#             'email': student['email'],
+#             'school': student['school'],
+#             'field_of_study': student['field_of_study'],
+#             'year': student['year'],
+#             'current_courses': list(CurrentCourseStatus.objects.filter(student_id=student['student_number']).values_list('course__course_name', flat=True)),
+#             'repeated_courses': list(RepeatedCourseStatus.objects.filter(student_id=student['student_number']).values_list('course__course_name', flat=True)),
+#         }
+#         students_list.append(student_dict)
+
+#     return JsonResponse(students_list, safe=False)
 
 
 # def get_students_group(request):
