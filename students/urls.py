@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import groups, get_fields, get_students, add_student_courses, view_student
+from .views import groups, get_fields, get_students, add_student_courses, view_student, get_courses
 
 
 
@@ -22,6 +22,7 @@ urlpatterns = [
     path('get-students-group/', views.get_students_group, name='get_students_group'),
 
     path('add-course/<int:student_id>/', views.add_student_courses, name='add_student_courses'),
-    path('list-courses/', views.add_student_courses, name='add_student_courses')
+    path('list-courses/', views.add_student_courses, name='add_student_courses'),
+    path('get-courses/<int:field_of_study_id>/', get_courses, name='get_courses'),
 
 ]

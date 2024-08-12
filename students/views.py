@@ -1,7 +1,7 @@
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse 
-from .models import Student, AcademicYear, FieldOfStudy, TutorialGroup,RepeatedCourseStatus, CurrentCourseStatus
+from .models import Student, AcademicYear, FieldOfStudy, TutorialGroup,RepeatedCourseStatus, CurrentCourseStatus, CurrentCourse
 from .forms import StudentForm
 from django.core.exceptions import ValidationError
 from django.db.models import Count
@@ -196,6 +196,15 @@ def get_students_group(request):
         students_list.append(student_dict)
 
     return JsonResponse(students_list, safe=False)
+
+def get_courses(request, field_of_study_id):
+    try:
+        field_of_study = FieldOfStudy.objects.get(id=field_of_study_id)
+        courses = CurrentCourse.objects.filter(field_of_study=field_of_study)
+        courses_data = [{'id': course.id, 'course_name': course.course_name} for course in courses]
+        return JsonResponse({'courses': courses_data})
+    except FieldOfStudy.DoesNotExist:
+        return JsonResponse({'courses': []}, status=404)
 
 
 # def get_students_group(request):
