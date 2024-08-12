@@ -173,12 +173,19 @@ def groups_student(request):
 
 def get_students_group(request):
     group_name = request.GET.get('group')
+    
+    # Fetch students based on the group name
     students = Student.objects.filter(tutorial_groups__name=group_name).values(
-        'student_number', 'first_name', 'last_name', 'email', 'school', 'field_of_study', 'year'
+        'id', 'student_number', 'first_name', 'last_name', 'email', 'school', 'field_of_study', 'year'
     )
 
     students_list = []
     for student in students:
+        # Get the current and repeated courses using the student ID (primary key)
+        current_courses = list(CurrentCourseStatus.objects.filter(student_id=student['id']).values_list('course__course_name', flat=True))
+        repeated_courses = list(RepeatedCourseStatus.objects.filter(student_id=student['id']).values_list('course__course_name', flat=True))
+
+        # Build the student dictionary
         student_dict = {
             'student_number': student['student_number'],
             'first_name': student['first_name'],
@@ -187,12 +194,36 @@ def get_students_group(request):
             'school': student['school'],
             'field_of_study': student['field_of_study'],
             'year': student['year'],
-            'current_courses': list(CurrentCourseStatus.objects.filter(student_id=student['student_number']).values_list('course__course_name', flat=True)),
-            'repeated_courses': list(RepeatedCourseStatus.objects.filter(student_id=student['student_number']).values_list('course__course_name', flat=True)),
+            'current_courses': current_courses if current_courses else ['No current courses'],
+            'repeated_courses': repeated_courses if repeated_courses else ['No repeated courses'],
         }
         students_list.append(student_dict)
 
     return JsonResponse(students_list, safe=False)
+
+
+# def get_students_group(request):
+#     group_name = request.GET.get('group')
+#     students = Student.objects.filter(tutorial_groups__name=group_name).values(
+#         'student_number', 'first_name', 'last_name', 'email', 'school', 'field_of_study', 'year'
+#     )
+
+#     students_list = []
+#     for student in students:
+#         student_dict = {
+#             'student_number': student['student_number'],
+#             'first_name': student['first_name'],
+#             'last_name': student['last_name'],
+#             'email': student['email'],
+#             'school': student['school'],
+#             'field_of_study': student['field_of_study'],
+#             'year': student['year'],
+#             'current_courses': list(CurrentCourseStatus.objects.filter(student_id=student['student_number']).values_list('course__course_name', flat=True)),
+#             'repeated_courses': list(RepeatedCourseStatus.objects.filter(student_id=student['student_number']).values_list('course__course_name', flat=True)),
+#         }
+#         students_list.append(student_dict)
+
+#     return JsonResponse(students_list, safe=False)
 
 
 # def get_students_group(request):
