@@ -24,5 +24,5 @@ urlpatterns = [
     path('add-course/<int:student_id>/', views.add_student_courses, name='add_student_courses'),
     path('list-courses/', views.add_student_courses, name='add_student_courses'),
     path('get-courses/<int:field_of_study_id>/', get_courses, name='get_courses'),
-
+    path('get-courses/<str:field_of_study_name>/', views.get_courses_by_name, name='get_courses_by_name'),
 ]

@@ -44,25 +44,25 @@
 
 <script>
   function updateCourses() {
-    const fieldOfStudyId = document.getElementById("field_of_study").value;
+    const fieldOfStudyName = encodeURIComponent(
+      document.getElementById("field_of_study").value
+    );
 
-    // Make an AJAX request to get courses for the selected field of study
-    fetch(`/get-courses/${fieldOfStudyId}/`)
+    fetch(`/get-courses/${fieldOfStudyName}/`)
       .then((response) => response.json())
       .then((data) => {
         const courseContainer = document.getElementById("current-courses-list");
-        courseContainer.innerHTML = ""; // Clear current content
+        courseContainer.innerHTML = "";
 
-        // Dynamically add checkboxes
         data.courses.forEach((course) => {
           courseContainer.innerHTML += `
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="current_courses" id="course_${course.id}" value="${course.id}">
-                        <label class="form-check-label" for="course_${course.id}">
-                            ${course.course_name}
-                        </label>
-                    </div>
-                `;
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="current_courses" id="course_${course.id}" value="${course.id}">
+                <label class="form-check-label" for="course_${course.id}">
+                    ${course.course_name}
+                </label>
+            </div>
+          `;
         });
       })
       .catch((error) => {

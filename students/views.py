@@ -206,6 +206,18 @@ def get_courses(request, field_of_study_id):
     
     return JsonResponse({"courses": course_list})
 
+def get_courses_by_name(request, field_of_study_name):
+    # Get the field of study object
+    field_of_study = FieldOfStudy.objects.get(name=field_of_study_name)
+    
+    # Filter courses by the selected field of study
+    courses = CurrentCourse.objects.filter(field_of_study=field_of_study)
+    
+    # Serialize the data to JSON
+    course_list = [{"id": course.id, "course_name": course.course_name} for course in courses]
+    
+    return JsonResponse({"courses": course_list})
+
 # def get_courses(request, field_of_study_id):
 #     try:
 #         # Fetch the courses based on the field_of_study_id
