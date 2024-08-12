@@ -4,7 +4,7 @@ from .models import Student, CurrentCourse, AcademicYear, FieldOfStudy, CurrentC
 
 class StudentForm(forms.ModelForm):
     current_courses = forms.ModelMultipleChoiceField(
-         queryset=CurrentCourse.objects.none(),
+        queryset=CurrentCourse.objects.none(),
         widget=forms.CheckboxSelectMultiple,
         required=False,
         label="Current Courses"
@@ -16,13 +16,12 @@ class StudentForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['field_of_study'].widget.attrs.update({'class': 'form-control'})
-        self.fields['year'].widget.attrs.update({'class': 'form-control'})
-
         self.fields['field_of_study'].widget.attrs.update({
+            'class': 'form-control',
             'onchange': 'updateCourses()',
             'id': 'field_of_study'
         })
+        self.fields['year'].widget.attrs.update({'class': 'form-control'})
 
     def clean_student_number(self):
         student_number = self.cleaned_data.get('student_number')
