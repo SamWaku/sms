@@ -4,7 +4,7 @@ from .models import Student, CurrentCourse, AcademicYear, FieldOfStudy, CurrentC
 
 class StudentForm(forms.ModelForm):
     current_courses = forms.ModelMultipleChoiceField(
-        queryset=CurrentCourse.objects.all(),
+         queryset=CurrentCourse.objects.none(),
         widget=forms.CheckboxSelectMultiple,
         required=False,
         label="Current Courses"
