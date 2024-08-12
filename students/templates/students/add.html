@@ -15,7 +15,7 @@
       <div class="card-body">
         <form action="{% url 'add' %}" method="POST">
           {% csrf_token %} {{ form.as_p }}
-          <h5>Current Courses</h5>
+          <h5>Add Student</h5>
           {% for course in form.current_courses.field.queryset %}
           <div class="form-check">
             <input
