@@ -67,6 +67,13 @@
             tbody.innerHTML = "<tr><td colspan='9'>No students found</td></tr>";
           } else {
             data.forEach((student) => {
+              // Join the course arrays into a string
+              const currentCourses =
+                student.current_courses.join(", ") || "No courses available";
+              const repeatedCourses =
+                student.repeated_courses.join(", ") || "No courses available";
+
+              // Populate the table rows
               tbody.innerHTML += `
                 <tr>
                   <td>${student.student_number}</td>
@@ -74,8 +81,8 @@
                   <td>${student.last_name}</td>
                   <td>${student.email}</td>
                   <td>${student.school}</td>
-                  <td>${student.current_course || ""}</td>
-                  <td>${student.repeated_course || ""}</td>
+                  <td>${currentCourses}</td>
+                  <td>${repeatedCourses}</td>
                   <td>${student.field_of_study}</td>
                   <td>${student.year}</td>
                 </tr>`;

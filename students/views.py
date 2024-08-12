@@ -1,7 +1,7 @@
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse 
-from .models import Student, AcademicYear, FieldOfStudy, TutorialGroup,RepeatedCourseStatus, CurrentCourseStatus
+from .models import Student, AcademicYear, FieldOfStudy, TutorialGroup,RepeatedCourseStatus, CurrentCourseStatus, CurrentCourse
 from .forms import StudentForm
 from django.core.exceptions import ValidationError
 from django.db.models import Count
@@ -173,19 +173,15 @@ def groups_student(request):
 
 def get_students_group(request):
     group_name = request.GET.get('group')
-    
-    # Fetch students based on the group name
     students = Student.objects.filter(tutorial_groups__name=group_name).values(
         'id', 'student_number', 'first_name', 'last_name', 'email', 'school', 'field_of_study', 'year'
     )
 
     students_list = []
     for student in students:
-        # Get the current and repeated courses using the student ID (primary key)
         current_courses = list(CurrentCourseStatus.objects.filter(student_id=student['id']).values_list('course__course_name', flat=True))
         repeated_courses = list(RepeatedCourseStatus.objects.filter(student_id=student['id']).values_list('course__course_name', flat=True))
 
-        # Build the student dictionary
         student_dict = {
             'student_number': student['student_number'],
             'first_name': student['first_name'],
@@ -194,12 +190,52 @@ def get_students_group(request):
             'school': student['school'],
             'field_of_study': student['field_of_study'],
             'year': student['year'],
-            'current_courses': current_courses if current_courses else ['No current courses'],
-            'repeated_courses': repeated_courses if repeated_courses else ['No repeated courses'],
+            'current_courses': current_courses if current_courses else ["No courses available"],
+            'repeated_courses': repeated_courses if repeated_courses else ["No courses available"],
         }
         students_list.append(student_dict)
 
     return JsonResponse(students_list, safe=False)
+
+def get_courses(request, field_of_study_id):
+    try:
+        field_of_study = FieldOfStudy.objects.get(id=field_of_study_id)
+        courses = CurrentCourse.objects.filter(field_of_study=field_of_study)
+        courses_data = [{'id': course.id, 'course_name': course.course_name} for course in courses]
+        return JsonResponse({'courses': courses_data})
+    except FieldOfStudy.DoesNotExist:
+        return JsonResponse({'courses': []}, status=404)
+
+
+# def get_students_group(request):
+#     group_name = request.GET.get('group')
+    
+#     # Fetch students based on the group name
+#     students = Student.objects.filter(tutorial_groups__name=group_name).values(
+#         'id', 'student_number', 'first_name', 'last_name', 'email', 'school', 'field_of_study', 'year'
+#     )
+
+#     students_list = []
+#     for student in students:
+#         # Get the current and repeated courses using the student ID (primary key)
+#         current_courses = list(CurrentCourseStatus.objects.filter(student_id=student['id']).values_list('course__course_name', flat=True))
+#         repeated_courses = list(RepeatedCourseStatus.objects.filter(student_id=student['id']).values_list('course__course_name', flat=True))
+
+#         # Build the student dictionary
+#         student_dict = {
+#             'student_number': student['student_number'],
+#             'first_name': student['first_name'],
+#             'last_name': student['last_name'],
+#             'email': student['email'],
+#             'school': student['school'],
+#             'field_of_study': student['field_of_study'],
+#             'year': student['year'],
+#             'current_courses': current_courses if current_courses else ['No current courses'],
+#             'repeated_courses': repeated_courses if repeated_courses else ['No repeated courses'],
+#         }
+#         students_list.append(student_dict)
+
+#     return JsonResponse(students_list, safe=False)
 
 
 # def get_students_group(request):
