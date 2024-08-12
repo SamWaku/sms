@@ -1,7 +1,7 @@
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse 
-from .models import Student, AcademicYear, FieldOfStudy, TutorialGroup
+from .models import Student, AcademicYear, FieldOfStudy, TutorialGroup, CurrentCourseStatus
 from .forms import StudentForm
 from django.core.exceptions import ValidationError
 from django.db.models import Count
