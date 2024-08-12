@@ -218,6 +218,48 @@ def get_courses_by_name(request, field_of_study_name):
     
     return JsonResponse({"courses": course_list})
 
+def add_student_courses(request, student_id):
+    student = get_object_or_404(Student, pk=student_id)
+    CurrentCourseStatusFormSet = modelformset_factory(CurrentCourseStatus, form=CurrentCourseStatusForm, extra=5)
+    RepeatedCourseStatusFormSet = modelformset_factory(RepeatedCourseStatus, form=RepeatedCourseStatusForm, extra=5)
+
+    if request.method == 'POST':
+        current_course_formset = CurrentCourseStatusFormSet(request.POST, queryset=CurrentCourseStatus.objects.filter(student=student))
+        repeated_course_formset = RepeatedCourseStatusFormSet(request.POST, queryset=RepeatedCourseStatus.objects.filter(student=student))
+        
+        if current_course_formset.is_valid() and repeated_course_formset.is_valid():
+            current_courses = current_course_formset.save(commit=False)
+            for current_course in current_courses:
+                current_course.student = student
+                current_course.save()
+
+            repeated_courses = repeated_course_formset.save(commit=False)
+            for repeated_course in repeated_courses:
+                repeated_course.student = student
+                repeated_course.save()
+
+            return redirect('index')
+    else:
+        current_course_formset = CurrentCourseStatusFormSet(queryset=CurrentCourseStatus.objects.filter(student=student))
+        repeated_course_formset = RepeatedCourseStatusFormSet(queryset=RepeatedCourseStatus.objects.filter(student=student))
+
+    return render(request, 'students/add-course.html', {
+        'current_course_formset': current_course_formset,
+        'repeated_course_formset': repeated_course_formset,
+        'student': student,
+    })
+
+def view_student(request, id):
+    student = get_object_or_404(Student, pk=id)
+    current_courses = CurrentCourseStatus.objects.filter(student=student)
+    repeated_courses = RepeatedCourseStatus.objects.filter(student=student)
+    return render(request, 'students/list-courses.html', {
+        'student': student,
+        'current_courses': current_courses,
+        'repeated_courses': repeated_courses,
+    })
+
+
 # def get_courses(request, field_of_study_id):
 #     try:
 #         # Fetch the courses based on the field_of_study_id
@@ -331,46 +373,6 @@ def get_courses_by_name(request, field_of_study_name):
 #     )
 #     return JsonResponse(list(students), safe=False)
 
-def add_student_courses(request, student_id):
-    student = get_object_or_404(Student, pk=student_id)
-    CurrentCourseStatusFormSet = modelformset_factory(CurrentCourseStatus, form=CurrentCourseStatusForm, extra=5)
-    RepeatedCourseStatusFormSet = modelformset_factory(RepeatedCourseStatus, form=RepeatedCourseStatusForm, extra=5)
-
-    if request.method == 'POST':
-        current_course_formset = CurrentCourseStatusFormSet(request.POST, queryset=CurrentCourseStatus.objects.filter(student=student))
-        repeated_course_formset = RepeatedCourseStatusFormSet(request.POST, queryset=RepeatedCourseStatus.objects.filter(student=student))
-        
-        if current_course_formset.is_valid() and repeated_course_formset.is_valid():
-            current_courses = current_course_formset.save(commit=False)
-            for current_course in current_courses:
-                current_course.student = student
-                current_course.save()
-
-            repeated_courses = repeated_course_formset.save(commit=False)
-            for repeated_course in repeated_courses:
-                repeated_course.student = student
-                repeated_course.save()
-
-            return redirect('index')
-    else:
-        current_course_formset = CurrentCourseStatusFormSet(queryset=CurrentCourseStatus.objects.filter(student=student))
-        repeated_course_formset = RepeatedCourseStatusFormSet(queryset=RepeatedCourseStatus.objects.filter(student=student))
-
-    return render(request, 'students/add-course.html', {
-        'current_course_formset': current_course_formset,
-        'repeated_course_formset': repeated_course_formset,
-        'student': student,
-    })
-
-def view_student(request, id):
-    student = get_object_or_404(Student, pk=id)
-    current_courses = CurrentCourseStatus.objects.filter(student=student)
-    repeated_courses = RepeatedCourseStatus.objects.filter(student=student)
-    return render(request, 'students/list-courses.html', {
-        'student': student,
-        'current_courses': current_courses,
-        'repeated_courses': repeated_courses,
-    })
 
 # def add(request):
 #     if request.method == 'POST':

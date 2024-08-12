@@ -19,6 +19,23 @@ class StudentForm(forms.ModelForm):
         self.fields['field_of_study'].widget.attrs.update({'class': 'form-control'})
         self.fields['year'].widget.attrs.update({'class': 'form-control'})
 
+        # Set the queryset for current_courses based on the selected field of study
+        if 'field_of_study' in self.data:
+            try:
+                field_of_study_id = int(self.data.get('field_of_study'))
+                self.fields['current_courses'].queryset = CurrentCourse.objects.filter(field_of_study_id=field_of_study_id)
+            except (ValueError, TypeError):
+                self.fields['current_courses'].queryset = CurrentCourse.objects.none()
+        elif self.instance.pk:
+            self.fields['current_courses'].queryset = self.instance.field_of_study.currentcourse_set.all()
+        else:
+            self.fields['current_courses'].queryset = CurrentCourse.objects.none()
+
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self.fields['field_of_study'].widget.attrs.update({'class': 'form-control'})
+    #     self.fields['year'].widget.attrs.update({'class': 'form-control'})
+
         self.fields['field_of_study'].widget.attrs.update({
             'onchange': 'updateCourses()',
             'id': 'field_of_study'
