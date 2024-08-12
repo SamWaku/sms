@@ -1,7 +1,7 @@
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse 
-from .models import Student, AcademicYear, FieldOfStudy, TutorialGroup, CurrentCourseStatus
+from .models import Student, AcademicYear, FieldOfStudy, TutorialGroup,RepeatedCourseStatus, CurrentCourseStatus
 from .forms import StudentForm
 from django.core.exceptions import ValidationError
 from django.db.models import Count
@@ -170,6 +170,7 @@ def groups_student(request):
     return render(request, 'students/student-groups.html', {
         'distinct_groups': distinct_groups,
     })
+
 def get_students_group(request):
     group_name = request.GET.get('group')
     students = Student.objects.filter(tutorial_groups__name=group_name).values(
@@ -187,8 +188,8 @@ def get_students_group(request):
             'school': student['school'],
             'field_of_study': student['field_of_study'],
             'year': student['year'],
-            'current_courses': list(CurrentCourseStatus.objects.filter(student_id=student['student_number']).values_list('course__name', flat=True)),
-            'repeated_courses': list(RepeatedCourseStatus.objects.filter(student_id=student['student_number']).values_list('course__name', flat=True)),
+            'current_courses': list(CurrentCourseStatus.objects.filter(student_id=student['student_number']).values_list('course__course_name', flat=True)),
+            'repeated_courses': list(RepeatedCourseStatus.objects.filter(student_id=student['student_number']).values_list('course__course_name', flat=True)),
         }
         students_list.append(student_dict)
 
