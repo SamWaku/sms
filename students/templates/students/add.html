@@ -44,8 +44,7 @@
 
 <script>
   function updateCourses() {
-    const fieldOfStudyElement = document.getElementById("field_of_study");
-    const fieldOfStudyId = fieldOfStudyElement.value; // Assuming the value is the ID, not the name
+    const fieldOfStudyId = document.getElementById("field_of_study").value;
 
     // Make an AJAX request to get courses for the selected field of study
     fetch(`/get-courses/${fieldOfStudyId}/`)
