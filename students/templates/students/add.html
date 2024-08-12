@@ -14,7 +14,47 @@
       </div>
       <div class="card-body">
         <form action="{% url 'add' %}" method="POST">
-          {% csrf_token %} {{ form.as_p }} {% if form.errors %}
+          {% csrf_token %} {{ form.as_p }}
+          <h5>Current Courses</h5>
+          {% for course in form.current_courses.field.queryset %}
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="current_courses"
+              id="course_{{ course.id }}"
+              value="{{ course.id }}"
+              {%
+              if
+              course
+              in
+              form.current_courses.value
+              %}checked{%
+              endif
+              %}
+            />
+            <label class="form-check-label" for="course_{{ course.id }}">
+              {{ course.course_name }}
+            </label>
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="carry_{{ course.id }}"
+              id="carry_{{ course.id }}"
+              {%
+              if
+              course.is_carried
+              %}checked{%
+              endif
+              %}
+            />
+            <label class="form-check-label" for="carry_{{ course.id }}">
+              Carry Course
+            </label>
+          </div>
+          {% endfor %} {% if form.errors %}
           <div class="alert alert-danger">
             <ul>
               {% for field in form %} {% if field.errors %}
