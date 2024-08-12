@@ -198,13 +198,50 @@ def get_students_group(request):
     return JsonResponse(students_list, safe=False)
 
 def get_courses(request, field_of_study_id):
-    try:
-        field_of_study = FieldOfStudy.objects.get(id=field_of_study_id)
-        courses = CurrentCourse.objects.filter(field_of_study=field_of_study)
-        courses_data = [{'id': course.id, 'course_name': course.course_name} for course in courses]
-        return JsonResponse({'courses': courses_data})
-    except FieldOfStudy.DoesNotExist:
-        return JsonResponse({'courses': []}, status=404)
+    # Filter courses by the selected field of study
+    courses = CurrentCourse.objects.filter(field_of_study_id=field_of_study_id)
+    
+    # Serialize the data to JSON
+    course_list = [{"id": course.id, "course_name": course.course_name} for course in courses]
+    
+    return JsonResponse({"courses": course_list})
+
+def get_courses_by_name(request, field_of_study_name):
+    # Get the field of study object
+    field_of_study = FieldOfStudy.objects.get(name=field_of_study_name)
+    
+    # Filter courses by the selected field of study
+    courses = CurrentCourse.objects.filter(field_of_study=field_of_study)
+    
+    # Serialize the data to JSON
+    course_list = [{"id": course.id, "course_name": course.course_name} for course in courses]
+    
+    return JsonResponse({"courses": course_list})
+
+# def get_courses(request, field_of_study_id):
+#     try:
+#         # Fetch the courses based on the field_of_study_id
+#         field_of_study = FieldOfStudy.objects.get(id=field_of_study_id)
+#         courses = CurrentCourse.objects.filter(field_of_study=field_of_study)
+        
+#         # Prepare the course data
+#         course_data = [{"id": course.id, "course_name": course.course_name} for course in courses]
+        
+#         # Return JSON response
+#         return JsonResponse({"courses": course_data})
+#     except FieldOfStudy.DoesNotExist:
+#         return JsonResponse({"error": "Field of Study not found"}, status=404)
+#     except Exception as e:
+#         return JsonResponse({"error": str(e)}, status=500)
+
+# def get_courses(request, field_of_study_id):
+#     try:
+#         field_of_study = FieldOfStudy.objects.get(id=field_of_study_id)
+#         courses = CurrentCourse.objects.filter(field_of_study=field_of_study)
+#         courses_data = [{'id': course.id, 'course_name': course.course_name} for course in courses]
+#         return JsonResponse({'courses': courses_data})
+#     except FieldOfStudy.DoesNotExist:
+#         return JsonResponse({'courses': []}, status=404)
 
 
 # def get_students_group(request):
