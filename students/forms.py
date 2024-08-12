@@ -19,6 +19,11 @@ class StudentForm(forms.ModelForm):
         self.fields['field_of_study'].widget.attrs.update({'class': 'form-control'})
         self.fields['year'].widget.attrs.update({'class': 'form-control'})
 
+        self.fields['field_of_study'].widget.attrs.update({
+            'onchange': 'updateCourses()',
+            'id': 'field_of_study'
+        })
+
     def clean_student_number(self):
         student_number = self.cleaned_data.get('student_number')
         if Student.objects.filter(student_number=student_number).exists():
