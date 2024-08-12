@@ -18,7 +18,7 @@
 
           <div id="current-courses-container">
             <!-- Placeholder for dynamically loaded courses -->
-            <h5>Current Courses</h5>
+            <h5>Add Student</h5>
             <div id="current-courses-list"></div>
           </div>
 
@@ -44,15 +44,13 @@
 
 <script>
   function updateCourses() {
-    const fieldOfStudyName = encodeURIComponent(
-      document.getElementById("field_of_study").value
-    );
+    const fieldOfStudyId = document.getElementById("field_of_study").value;
 
-    fetch(`/get-courses/${fieldOfStudyName}/`)
+    fetch(`/get-courses/${fieldOfStudyId}/`)
       .then((response) => response.json())
       .then((data) => {
         const courseContainer = document.getElementById("current-courses-list");
-        courseContainer.innerHTML = "";
+        courseContainer.innerHTML = ""; // Clear current content
 
         data.courses.forEach((course) => {
           courseContainer.innerHTML += `
